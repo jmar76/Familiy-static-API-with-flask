@@ -2,6 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import json 
 from flask import Flask, request, jsonify, url_for
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
@@ -42,18 +43,52 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+# @app.route('/members', methods= ['GET'])
+# def get_member():
+#     return jsonify(members)
+
+@app.route('/member/<int:index>', methods=['GET'])
+def get_person(index):
+
+    # this is how you can use the Family datastructure by calling its methods
+    person = jackson_family.get_member(index)
+    if person:
+        return jsonify(person), 200
+    
+    return 'Not Found', 404
+
+
+@app.route('/member', methods=['POST'])
+def new_member():
+    cuerpo_peticion = request.data #texto plano
+    cuerpo_peticion_dictionatio = json.loads(cuerpo_peticion) # convertirlo en dictionario python
+    # convierte en objeto python ( un diccionario por ejemplo )  el cuerpo del post  que está en texto plano (==> request.data)    
+    jackson_family.add_member(cuerpo_peticion_dictionatio)
+
+    members = jackson_family.get_all_members()
+    if members:
+        return jsonify(members), 200
+    return '', 404
+
+
 @app.route('/members', methods=['GET'])
 def handle_hello():
 
     # this is how you can use the Family datastructure by calling its methods
     members = jackson_family.get_all_members()
-    response_body = {
-        "hello": "world",
-        "family": members
-    }
+    return jsonify(members), 200
 
-
-    return jsonify(response_body), 200
+@app.route('/member/<int:index>', methods=['DELETE'])
+def handle_delete_member(index):
+    person = jackson_family.delete_member(index)    
+    # jackson_family.get_all_members()
+    
+    if person:
+        body= {
+            'done': True
+        }
+        return jsonify(body), 200
+    return '', 404
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
