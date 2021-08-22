@@ -47,6 +47,7 @@ def sitemap():
 # def get_member():
 #     return jsonify(members)
 
+
 @app.route('/member/<int:index>', methods=['GET'])
 def get_person(index):
 
